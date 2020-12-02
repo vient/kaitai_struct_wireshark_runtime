@@ -26,9 +26,9 @@ function KaitaiStream:is_eof()
     if self.bits_left > 0 then
         return false
     end
-    local current = self._io:seek()
-    local dummy = self._io:read(1)
-    self._io:seek("set", current)
+    local current = self:pos()
+    local dummy = self:read(1)
+    self:seek(current)
 
     return dummy == nil
 end
@@ -42,9 +42,9 @@ function KaitaiStream:pos()
 end
 
 function KaitaiStream:size()
-    local current = self._io:seek()
+    local current = self:pos()
     local size = self._io:seek("end")
-    self._io:seek("set", current)
+    self:seek(current)
 
     return size
 end
@@ -66,9 +66,8 @@ end
 -------------------------------------------------------------------------------
 
 function KaitaiStream:read_s1()
-    local raw = self._io:read(1)
+    local raw = self:read(1)
     return raw, raw:int()
-    -- return string.unpack('b', self._io:read(1))
 end
 
 --.............................................................................
@@ -76,21 +75,18 @@ end
 --.............................................................................
 
 function KaitaiStream:read_s2be()
-    local raw = self._io:read(2)
+    local raw = self:read(2)
     return raw, raw:int()
-    -- return string.unpack('>i2', self._io:read(2))
 end
 
 function KaitaiStream:read_s4be()
-    local raw = self._io:read(4)
+    local raw = self:read(4)
     return raw, raw:int()
-    -- return string.unpack('>i4', self._io:read(4))
 end
 
 function KaitaiStream:read_s8be()
-    local raw = self._io:read(8)
+    local raw = self:read(8)
     return raw, raw:int64()
-    -- return string.unpack('>i8', self._io:read(8))
 end
 
 --.............................................................................
@@ -98,21 +94,18 @@ end
 --.............................................................................
 
 function KaitaiStream:read_s2le()
-    local raw = self._io:read(2)
+    local raw = self:read(2)
     return raw, raw:le_int()
-    -- return string.unpack('<i2', self._io:read(2))
 end
 
 function KaitaiStream:read_s4le()
-    local raw = self._io:read(4)
+    local raw = self:read(4)
     return raw, raw:le_int()
-    -- return string.unpack('<i4', self._io:read(4))
 end
 
 function KaitaiStream:read_s8le()
-    local raw = self._io:read(8)
+    local raw = self:read(8)
     return raw, raw:le_int64()
-    -- return string.unpack('<i8', self._io:read(8))
 end
 
 -------------------------------------------------------------------------------
@@ -120,9 +113,8 @@ end
 -------------------------------------------------------------------------------
 
 function KaitaiStream:read_u1()
-    local raw = self._io:read(1)
+    local raw = self:read(1)
     return raw, raw:uint()
-    -- return string.unpack('B', self._io:read(1))
 end
 
 --.............................................................................
@@ -130,21 +122,18 @@ end
 --.............................................................................
 
 function KaitaiStream:read_u2be()
-    local raw = self._io:read(2)
+    local raw = self:read(2)
     return raw, raw:uint()
-    -- return string.unpack('>I2', self._io:read(2))
 end
 
 function KaitaiStream:read_u4be()
-    local raw = self._io:read(4)
+    local raw = self:read(4)
     return raw, raw:uint()
-    -- return string.unpack('>I4', self._io:read(4))
 end
 
 function KaitaiStream:read_u8be()
-    local raw = self._io:read(8)
+    local raw = self:read(8)
     return raw, raw:uint64()
-    -- return string.unpack('>I8', self._io:read(8))
 end
 
 --.............................................................................
@@ -152,21 +141,18 @@ end
 --.............................................................................
 
 function KaitaiStream:read_u2le()
-    local raw = self._io:read(2)
+    local raw = self:read(2)
     return raw, raw:le_uint()
-    -- return string.unpack('<I2', self._io:read(2))
 end
 
 function KaitaiStream:read_u4le()
-    local raw = self._io:read(4)
+    local raw = self:read(4)
     return raw, raw:le_uint()
-    -- return string.unpack('<I4', self._io:read(4))
 end
 
 function KaitaiStream:read_u8le()
-    local raw = self._io:read(8)
+    local raw = self:read(8)
     return raw, raw:le_uint64()
-    -- return string.unpack('<I8', self._io:read(8))
 end
 
 --=============================================================================
@@ -178,15 +164,13 @@ end
 -------------------------------------------------------------------------------
 
 function KaitaiStream:read_f4be()
-    local raw = self._io:read(4)
+    local raw = self:read(4)
     return raw, raw:float()
-    -- return string.unpack('>f', self._io:read(4))
 end
 
 function KaitaiStream:read_f8be()
-    local raw = self._io:read(8)
+    local raw = self:read(8)
     return raw, raw:float()
-    -- return string.unpack('>d', self._io:read(8))
 end
 
 -------------------------------------------------------------------------------
@@ -194,15 +178,13 @@ end
 -------------------------------------------------------------------------------
 
 function KaitaiStream:read_f4le()
-    local raw = self._io:read(4)
+    local raw = self:read(4)
     return raw, raw:le_float()
-    -- return string.unpack('<f', self._io:read(4))
 end
 
 function KaitaiStream:read_f8le()
-    local raw = self._io:read(8)
+    local raw = self:read(8)
     return raw, raw:le_float()
-    -- return string.unpack('<d', self._io:read(8))
 end
 
 --=============================================================================
@@ -278,9 +260,9 @@ end
 --=============================================================================
 
 function KaitaiStream:read_bytes(n)
-    local r = self._io:read(n)
+    local r = self:read(n)
     if r == nil then
-        r = self._io:read(0)
+        r = self:read(0)
     end
 
     if r:len() < n then
@@ -291,45 +273,47 @@ function KaitaiStream:read_bytes(n)
 end
 
 function KaitaiStream:read_bytes_full()
-    local r = self._io:read("*all")
+    local r = self:read("*all")
     if r == nil then
-        r = self._io:read(0)
+        r = self:read(0)
     end
 
     return r, r:string()
 end
 
 function KaitaiStream:read_bytes_term(term, include_term, consume_term, eos_error)
-    local start_pos = self._io:seek()
+    local start_pos = self:pos()
     local r_len = 0
+    local result_bytes = {}
 
     while true do
-        local c = self._io:read(1)
+        local c = self:read(1)
+        r_len = r_len + 1
 
         if c == nil then
             if eos_error then
                 error("end of stream reached, but no terminator " .. term .. " found")
             else
-                self._io:seek("set", start_pos)
-                local raw = self._io:read(r_len)
+                self:seek(start_pos)
+                local raw = self:read(r_len)
                 return raw, raw:string()
             end
-        elseif c:int() == term then
+        end
+        
+        local c_val = c:int()
+        if c_val == term then
             if include_term then
-                r_len = r_len + 1
+                table.insert(result_bytes, c_val)
             end
-
-            self._io:seek("set", start_pos)
-            local raw = self._io:read(r_len)
-
-            if not consume_term then        -- this looks really weird
-                local current = self._io:seek()
-                self._io:seek("set", current - 1)
+            if not consume_term then
+                r_len = r_len - 1
             end
+            self:seek(start_pos)
 
-            return raw, raw:string()
+            local raw = self:read(r_len)
+            return raw, string.char(table.unpack(result_bytes))
         else
-            r_len = r_len + 1
+            table.insert(result_bytes, c_val)
         end
     end
 end
